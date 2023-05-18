@@ -7,5 +7,7 @@ dependencies:
   - pip:
     - openai
     - langchain
+    - duckduckgo-search
+    - mercantile
     - ipywidgets
     - jupyterlab
