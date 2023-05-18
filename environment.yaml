@@ -1,0 +1,11 @@
+name: llllm-env
+channels:
+  - conda-forge
+dependencies:
+  - python=3
+  - pip
+  - pip:
+    - openai
+    - langchain
+    - ipywidgets
+    - jupyterlab
