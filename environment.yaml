@@ -9,5 +9,6 @@ dependencies:
     - langchain
     - duckduckgo-search
     - mercantile
+    - geopy
     - ipywidgets
     - jupyterlab
