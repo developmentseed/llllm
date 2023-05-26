@@ -1,7 +1,7 @@
 from langchain.agents import initialize_agent
 
 
-def base_agent(llm, tools):
+def base_agent(llm, tools, name="zero-shot-react-description"):
     """Base agent to perform xyz slippy map tiles operations.
 
     llm: LLM object
@@ -10,8 +10,8 @@ def base_agent(llm, tools):
     agent = initialize_agent(
         llm=llm,
         tools=tools,
-        agent="zero-shot-react-description",
-        max_iterations=5,
+        agent=name,
+        max_iterations=3,
         early_stopping_method="generate",
         verbose=True,
     )
