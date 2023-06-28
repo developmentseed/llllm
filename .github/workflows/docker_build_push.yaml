@@ -32,3 +32,5 @@ jobs:
         tags: |
           ghcr.io/developmentseed/llllm:latest
           ghcr.io/developmentseed/llllm:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
