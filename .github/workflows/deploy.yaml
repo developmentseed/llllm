@@ -27,6 +27,8 @@ jobs:
       run: kubectl apply -f deployment/k8s/configmap.yaml --namespace project-llllm
     - name: 'Set up Helm'
       uses: 'Azure/setup-helm@v1'
+      with:
+        version: 'v3.12.0'
     - name: "Deploy Helm Chart"
       run: |
         helm upgrade --install project-llllm deployment/helm --create-namespace --namespace project-llllm --set secrets.openai_api_key=${{ secrets.OPENAI_API_KEY }}
