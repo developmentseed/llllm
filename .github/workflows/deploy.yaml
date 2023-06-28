@@ -20,6 +20,7 @@ jobs:
     - name: Configure kubectl
       run: |
         gcloud config set project ${{ secrets.PROJECT_ID }}
+        gcloud config set compute/zone us-central1-f
         gcloud container clusters get-credentials ${{ secrets.CLUSTER_NAME }}
     - name: Create contacts configmap
       run: kubectl apply -f deployment/k8s/configmap.yaml --namespace project-llllm
