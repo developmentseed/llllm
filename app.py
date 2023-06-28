@@ -1,8 +1,10 @@
 import os
 
-import osmnx as ox
-import geopandas as gpd
+import folium
+import streamlit as st
+from streamlit_folium import folium_static
 
+from langchain.agents import AgentType
 from langchain.chat_models import ChatOpenAI
 from langchain.tools import Tool, DuckDuckGoSearchRun
 
@@ -12,11 +14,6 @@ from tools.geopy.distance import GeopyDistanceTool
 from tools.osmnx.geometry import OSMnxGeometryTool
 from tools.osmnx.network import OSMnxNetworkTool
 from agents.l4m_agent import base_agent
-
-import geopandas as gpd
-import streamlit as st
-import folium
-from streamlit_folium import folium_static
 
 
 def get_llm():
@@ -28,7 +25,7 @@ def get_llm():
     return llm
 
 
-def get_agent(llm, name="structured-chat-zero-shot-react-description"):
+def get_agent(llm, agent_type=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION):
     # define a set of tools the agent has access to for queries
     duckduckgo_tool = Tool(
         name="DuckDuckGo",
@@ -51,7 +48,7 @@ def get_agent(llm, name="structured-chat-zero-shot-react-description"):
         network_tool,
     ]
 
-    agent = base_agent(llm, tools, name=name)
+    agent = base_agent(llm, tools, agent_type=agent_type)
     return agent
 
 
