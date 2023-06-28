@@ -1,7 +1,7 @@
 streamlit:
   image:
     repository: ghcr.io/developmentseed/llllm
-    tag: 1a72df2fa3462b4cd5432828238674209541e6c3
+    tag: latest
   host: llllm.k8s.labs.ds.io
 
 secrets:
