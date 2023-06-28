@@ -19,6 +19,7 @@ jobs:
       uses: 'google-github-actions/setup-gcloud@v1'
     - name: Configure kubectl
       run: |
+        gcloud components install gke-gcloud-auth-plugin
         gcloud config set project ${{ secrets.PROJECT_ID }}
         gcloud config set compute/zone us-central1-f
         gcloud container clusters get-credentials ${{ secrets.CLUSTER_NAME }}
