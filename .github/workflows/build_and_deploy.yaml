@@ -1,16 +1,40 @@
-name: Deploy Terraform Infrastructure to GCP
+name: Build Docker Image, Push to GHCR and Deploy to GKE
+
 on:
-  workflow_dispatch: # allows for manual invocation
   push:
     branches:
-      - main
-      - feat/deployment
+    - main
+    - feat/deployment
+
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        tags: |
+          ghcr.io/developmentseed/llllm:latest
+          ghcr.io/developmentseed/llllm:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+  
     - id: 'auth'
       uses: 'google-github-actions/auth@v1'
       with:
@@ -23,8 +47,6 @@ jobs:
         gcloud config set project ${{ secrets.PROJECT_ID }}
         gcloud config set compute/zone us-central1-f
         gcloud container clusters get-credentials ${{ secrets.CLUSTER_NAME }}
-    - name: Create contacts configmap
-      run: kubectl apply -f deployment/k8s/configmap.yaml --namespace project-llllm
     - name: 'Set up Helm'
       uses: 'Azure/setup-helm@v1'
       with:
@@ -32,3 +54,6 @@ jobs:
     - name: "Deploy Helm Chart"
       run: |
         helm upgrade --install project-llllm deployment/helm --create-namespace --namespace project-llllm --set secrets.openai_api_key=${{ secrets.OPENAI_API_KEY }}
+    - name: Create contacts configmap
+      run: kubectl apply -f deployment/k8s/configmap.yaml --namespace project-llllm
+
