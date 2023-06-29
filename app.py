@@ -8,6 +8,7 @@ from streamlit_folium import folium_static
 from langchain.agents import AgentType
 from langchain.chat_models import ChatOpenAI
 from langchain.tools import Tool, DuckDuckGoSearchRun
+from langchain.callbacks import StreamlitCallbackHandler
 
 from tools.mercantile_tool import MercantileTool
 from tools.geopy.geocode import GeopyGeocodeTool
@@ -57,11 +58,13 @@ def get_agent(llm, agent_type=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPT
 
 
 def run_query(agent, query):
-    response = agent(query)
+    st_callback = StreamlitCallbackHandler(st.container())
+    response = agent.run(query, callbacks=[st_callback])
     return response
 
 
 def plot_raster(items):
+    st.subheader("Preview of the first item sorted by cloud cover")
     selected_item = min(items, key=lambda item: item.properties["eo:cloud_cover"])
     href = selected_item.assets["rendered_preview"].href
     # arr = rio.open(href).read()
@@ -86,6 +89,7 @@ def plot_raster(items):
 
 
 def plot_vector(df):
+    st.subheader("Add the geometry to the Map")
     center = df.centroid.iloc[0]
     m = folium.Map(location=[center.y, center.x], zoom_start=12)
     folium.GeoJson(gdf).add_to(m)
@@ -104,10 +108,10 @@ if st.button("Submit", key="submit", type="primary"):
     agent = get_agent(llm)
     response = run_query(agent, query)
 
-    if type(response["output"]) == str:
-        st.write(response["output"])
+    if type(response) == str:
+        st.write(response)
     else:
-        tool, result = response["output"]
+        tool, result = response
 
         match tool:
             case "stac-search":
@@ -123,7 +127,7 @@ if st.button("Submit", key="submit", type="primary"):
                 st.write(f"Found {len(result)} network geometries.")
                 plot_vector(ndf)
             case _:
-                st.write(response["output"])
+                st.write(response)
 
     # show_on_map(response)
     # st.success("Great, you have the results plotted on the map.")
