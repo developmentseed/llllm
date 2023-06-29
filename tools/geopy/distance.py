@@ -20,7 +20,7 @@ class GeopyDistanceTool(BaseTool):
     description: str = "Use this tool to compute distance between two points available in lat,lng format."
 
     def _run(self, point_1: tuple[int, int], point_2: tuple[int, int]) -> float:
-        return distance(point_1, point_2).km
+        return ("distance", distance(point_1, point_2).km)
 
     def _arun(self, place: str):
         raise NotImplementedError

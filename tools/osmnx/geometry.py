@@ -14,19 +14,19 @@ class PlaceWithTags(BaseModel):
 
 
 class OSMnxGeometryTool(BaseTool):
-    """Custom tool to query geometries from OSM."""
+    """Tool to query geometries from Open Street Map (OSM)."""
 
     name: str = "geometry"
     args_schema: Type[BaseModel] = PlaceWithTags
     description: str = "Use this tool to get geometry of different features of a place like building footprints, parks, lakes, hospitals, schools etc. \
-    Pass the name of the place & relevant tags of Open Street Map as args."
+    Pass the name of the place & relevant tags of OSM as args."
     return_direct = True
 
     def _run(self, place: str, tags: Dict[str, str]) -> gpd.GeoDataFrame:
         gdf = ox.geometries_from_place(place, tags)
         gdf = gdf[gdf["geometry"].type.isin({"Polygon", "MultiPolygon"})]
         gdf = gdf[["name", "geometry"]].reset_index(drop=True).head(100)
-        return gdf
+        return ("geometry", gdf)
 
     def _arun(self, place: str):
         raise NotImplementedError
