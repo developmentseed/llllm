@@ -21,7 +21,7 @@ class GeopyGeocodeTool(BaseTool):
     def _run(self, place: str) -> tuple:
         locator = Nominatim(user_agent="geocode")
         location = locator.geocode(place)
-        return (location.latitude, location.longitude)
+        return ("geocode", (location.latitude, location.longitude))
 
     def _arun(self, place: str):
         raise NotImplementedError
