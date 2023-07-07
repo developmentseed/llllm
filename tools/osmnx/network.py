@@ -27,7 +27,7 @@ class OSMnxNetworkTool(BaseTool):
     def _run(self, place: str, network_type: str) -> gpd.GeoDataFrame:
         G = ox.graph_from_place(place, network_type=network_type, simplify=True)
         network = utils_graph.graph_to_gdfs(G, nodes=False)
-        network = network[["name", "geometry"]].reset_index(drop=True).head(100)
+        network = network[["name", "geometry"]].reset_index(drop=True)
         return ("network", network)
 
     def _arun(self, place: str):

@@ -8,7 +8,10 @@ from streamlit_folium import folium_static
 from langchain.agents import AgentType
 from langchain.chat_models import ChatOpenAI
 from langchain.tools import Tool, DuckDuckGoSearchRun
-from langchain.callbacks import StreamlitCallbackHandler
+from langchain.callbacks import (
+    StreamlitCallbackHandler,
+    get_openai_callback,
+)
 
 from tools.mercantile_tool import MercantileTool
 from tools.geopy.geocode import GeopyGeocodeTool
@@ -23,7 +26,7 @@ def get_llm():
     llm = ChatOpenAI(
         temperature=0,
         openai_api_key=os.environ["OPENAI_API_KEY"],
-        model_name="gpt-3.5-turbo",
+        model_name="gpt-3.5-turbo-0613",
     )
     return llm
 
@@ -92,7 +95,7 @@ def plot_vector(df):
     st.subheader("Add the geometry to the Map")
     center = df.centroid.iloc[0]
     m = folium.Map(location=[center.y, center.x], zoom_start=12)
-    folium.GeoJson(gdf).add_to(m)
+    folium.GeoJson(df).add_to(m)
     folium_static(m)
 
 
@@ -106,7 +109,14 @@ query = st.text_input(
 if st.button("Submit", key="submit", type="primary"):
     llm = get_llm()
     agent = get_agent(llm)
-    response = run_query(agent, query)
+
+    with get_openai_callback() as cb:
+        response = run_query(agent, query)
+        print(f"Model name: {response.llm_output.get('model_name', '')}")
+        print(f"Total Tokens: {cb.total_tokens}")
+        print(f"Prompt Tokens: {cb.prompt_tokens}")
+        print(f"Completion Tokens: {cb.completion_tokens}")
+        print(f"Total Cost (USD): ${cb.total_cost}")
 
     if type(response) == str:
         st.write(response)

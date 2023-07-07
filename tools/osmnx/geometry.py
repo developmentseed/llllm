@@ -25,7 +25,7 @@ class OSMnxGeometryTool(BaseTool):
     def _run(self, place: str, tags: Dict[str, str]) -> gpd.GeoDataFrame:
         gdf = ox.geometries_from_place(place, tags)
         gdf = gdf[gdf["geometry"].type.isin({"Polygon", "MultiPolygon"})]
-        gdf = gdf[["name", "geometry"]].reset_index(drop=True).head(100)
+        gdf = gdf[["name", "geometry"]].reset_index(drop=True)
         return ("geometry", gdf)
 
     def _arun(self, place: str):
