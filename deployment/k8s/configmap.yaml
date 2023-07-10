@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: llllm-contacts
+data:
+  project: llllm
+  repo: "github.com/developmentseed/llllm"
+  contacts: |
+    - name: Soumya Ranjan Mohanty
+      email: soumya@developmentseed.org
+      slack: srm

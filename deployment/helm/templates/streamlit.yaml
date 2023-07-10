@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llllm-streamlit-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: llllm-streamlit-app
+  template:
+    metadata:
+      labels:
+        app: llllm-streamlit-app
+    spec:
+      containers:
+      - name: llllm-streamlit-app
+        image: {{ .Values.streamlit.image.repository }}:{{ .Values.streamlit.image.tag }}
+        command: ["/opt/conda/envs/llllm-env/bin/streamlit"]
+        args: ["run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+        env:
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: llllm-secrets
+              key: openai_api_key
+        ports:
+        - containerPort: 8501
+        volumeMounts:
+            - name: cache-volume
+              mountPath: /app/cache
+      volumes:
+        - name: cache-volume
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llllm-streamlit-app-service
+spec:
+  selector:
+    app: llllm-streamlit-app
+  ports:
+  - protocol: TCP
+    port: 8501
+    targetPort: 8501
+  type: ClusterIP
