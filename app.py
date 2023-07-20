@@ -23,10 +23,12 @@ from agents.l4m_agent import base_agent
 
 
 @st.cache_resource(ttl="1h")
-def get_agent(agent_type=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION):
+def get_agent(
+    openai_api_key, agent_type=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION
+):
     llm = ChatOpenAI(
         temperature=0,
-        openai_api_key=os.environ["OPENAI_API_KEY"],
+        openai_api_key=openai_api_key,
         model_name="gpt-3.5-turbo-0613",
     )
     # define a set of tools the agent has access to for queries
@@ -96,9 +98,11 @@ def plot_vector(df):
     folium_static(m)
 
 
+st.set_page_config(page_title="LLLLM", page_icon="🤖", layout="wide")
 st.subheader("🤖 I am Geo LLM Agent!")
 
-agent = get_agent()
+with st.sidebar:
+    openai_api_key = st.text_input("OpenAI API Key", type="password")
 
 if "msgs" not in st.session_state:
     st.session_state.msgs = []
@@ -113,6 +117,11 @@ if prompt := st.chat_input("Ask me anything about the flat world..."):
 
     st.session_state.msgs.append({"role": "user", "avatar": "🧑‍💻", "content": prompt})
 
+    if not openai_api_key:
+        st.info("Please add your OpenAI API key to continue.")
+        st.stop()
+
+    agent = get_agent(openai_api_key)
     with get_openai_callback() as cb:
         response = run_query(agent, prompt)
 
