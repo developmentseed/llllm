@@ -17,12 +17,6 @@ spec:
         image: {{ .Values.streamlit.image.repository }}:{{ .Values.streamlit.image.tag }}
         command: ["/opt/conda/envs/llllm-env/bin/streamlit"]
         args: ["run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
-        env:
-        - name: OPENAI_API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: llllm-secrets
-              key: openai_api_key
         ports:
         - containerPort: 8501
         volumeMounts:

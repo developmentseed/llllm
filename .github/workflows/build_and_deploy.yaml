@@ -1,6 +1,7 @@
 name: Build Docker Image, Push to GHCR and Deploy to GKE
 
 on:
+  workflow_dispatch: # allows for manual triggering
   push:
     branches:
     - main
@@ -54,7 +55,6 @@ jobs:
     - name: "Deploy Helm Chart"
       run: |
         helm upgrade --install project-llllm deployment/helm --create-namespace --namespace project-llllm \
-        --set secrets.openai_api_key=${{ secrets.OPENAI_API_KEY }} \
         --set streamlit.image.tag=${{ github.sha }}
     - name: Create contacts configmap
       run: kubectl apply -f deployment/k8s/configmap.yaml --namespace project-llllm
