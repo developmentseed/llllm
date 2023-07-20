@@ -101,11 +101,37 @@ def plot_vector(df):
 st.set_page_config(page_title="LLLLM", page_icon="🤖", layout="wide")
 st.subheader("🤖 I am Geo LLM Agent!")
 
+if "msgs" not in st.session_state:
+    st.session_state.msgs = []
+
+if "total_tokens" not in st.session_state:
+    st.session_state.total_tokens = 0
+
+if "prompt_tokens" not in st.session_state:
+    st.session_state.prompt_tokens = 0
+
+if "completion_tokens" not in st.session_state:
+    st.session_state.completion_tokens = 0
+
+if "total_cost" not in st.session_state:
+    st.session_state.total_cost = 0
+
 with st.sidebar:
     openai_api_key = st.text_input("OpenAI API Key", type="password")
 
-if "msgs" not in st.session_state:
-    st.session_state.msgs = []
+    st.subheader("OpenAI Usage")
+    total_tokens = st.empty()
+    prompt_tokens = st.empty()
+    completion_tokens = st.empty()
+    total_cost = st.empty()
+
+    total_tokens.write(f"Total Tokens: {st.session_state.total_tokens:,.0f}")
+    prompt_tokens.write(f"Prompt Tokens: {st.session_state.prompt_tokens:,.0f}")
+    completion_tokens.write(
+        f"Completion Tokens: {st.session_state.completion_tokens:,.0f}"
+    )
+    total_cost.write(f"Total Cost (USD): ${st.session_state.total_cost:,.4f}")
+
 
 for msg in st.session_state.msgs:
     with st.chat_message(name=msg["role"], avatar=msg["avatar"]):
@@ -127,10 +153,17 @@ if prompt := st.chat_input("Ask me anything about the flat world..."):
 
         # Log OpenAI stats
         # print(f"Model name: {response.llm_output.get('model_name', '')}")
-        print(f"Total Tokens: {cb.total_tokens}")
-        print(f"Prompt Tokens: {cb.prompt_tokens}")
-        print(f"Completion Tokens: {cb.completion_tokens}")
-        print(f"Total Cost (USD): ${cb.total_cost}")
+        st.session_state.total_tokens += cb.total_tokens
+        st.session_state.prompt_tokens += cb.prompt_tokens
+        st.session_state.completion_tokens += cb.completion_tokens
+        st.session_state.total_cost += cb.total_cost
+
+        total_tokens.write(f"Total Tokens: {st.session_state.total_tokens:,.0f}")
+        prompt_tokens.write(f"Prompt Tokens: {st.session_state.prompt_tokens:,.0f}")
+        completion_tokens.write(
+            f"Completion Tokens: {st.session_state.completion_tokens:,.0f}"
+        )
+        total_cost.write(f"Total Cost (USD): ${st.session_state.total_cost:,.4f}")
 
     with st.chat_message(name="assistant", avatar="🤖"):
         if type(response) == str:
