@@ -22,16 +22,13 @@ from tools.stac.search import STACSearchTool
 from agents.l4m_agent import base_agent
 
 
-def get_llm():
+@st.cache_resource(ttl="1h")
+def get_agent(agent_type=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION):
     llm = ChatOpenAI(
         temperature=0,
         openai_api_key=os.environ["OPENAI_API_KEY"],
         model_name="gpt-3.5-turbo-0613",
     )
-    return llm
-
-
-def get_agent(llm, agent_type=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION):
     # define a set of tools the agent has access to for queries
     duckduckgo_tool = Tool(
         name="DuckDuckGo",
@@ -101,8 +98,7 @@ def plot_vector(df):
 
 st.subheader("🤖 I am Geo LLM Agent!")
 
-llm = get_llm()
-agent = get_agent(llm)
+agent = get_agent()
 
 if "msgs" not in st.session_state:
     st.session_state.msgs = []
