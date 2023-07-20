@@ -99,45 +99,61 @@ def plot_vector(df):
     folium_static(m)
 
 
-st.title("LLLLM")
+st.subheader("🤖 I am Geo LLM Agent!")
 
-query = st.text_input(
-    "Ask me stuff about the flat world: ",
-    placeholder="Find all the hospitals in Bangalore",
-)
+llm = get_llm()
+agent = get_agent(llm)
 
-if st.button("Submit", key="submit", type="primary"):
-    llm = get_llm()
-    agent = get_agent(llm)
+if "msgs" not in st.session_state:
+    st.session_state.msgs = []
+
+for msg in st.session_state.msgs:
+    with st.chat_message(name=msg["role"], avatar=msg["avatar"]):
+        st.markdown(msg["content"])
+
+if prompt := st.chat_input("Ask me anything about the flat world..."):
+    with st.chat_message(name="user", avatar="🧑‍💻"):
+        st.markdown(prompt)
+
+    st.session_state.msgs.append({"role": "user", "avatar": "🧑‍💻", "content": prompt})
 
     with get_openai_callback() as cb:
-        response = run_query(agent, query)
-        print(f"Model name: {response.llm_output.get('model_name', '')}")
+        response = run_query(agent, prompt)
+
+        # Log OpenAI stats
+        # print(f"Model name: {response.llm_output.get('model_name', '')}")
         print(f"Total Tokens: {cb.total_tokens}")
         print(f"Prompt Tokens: {cb.prompt_tokens}")
         print(f"Completion Tokens: {cb.completion_tokens}")
         print(f"Total Cost (USD): ${cb.total_cost}")
 
-    if type(response) == str:
-        st.write(response)
-    else:
-        tool, result = response
+    with st.chat_message(name="assistant", avatar="🤖"):
+        if type(response) == str:
+            content = response
+            st.markdown(response)
+        else:
+            tool, result = response
 
-        match tool:
-            case "stac-search":
-                st.write(f"Found {len(result)} items from the catalog.")
-                if len(result) > 0:
-                    plot_raster(result)
-            case "geometry":
-                gdf = result
-                st.write(f"Found {len(result)} geometries.")
-                plot_vector(gdf)
-            case "network":
-                ndf = result
-                st.write(f"Found {len(result)} network geometries.")
-                plot_vector(ndf)
-            case _:
-                st.write(response)
+            match tool:
+                case "stac-search":
+                    content = f"Found {len(result)} items from the catalog."
+                    st.markdown(content)
+                    if len(result) > 0:
+                        plot_raster(result)
+                case "geometry":
+                    content = f"Found {len(result)} geometries."
+                    gdf = result
+                    st.markdown(content)
+                    plot_vector(gdf)
+                case "network":
+                    content = f"Found {len(result)} network geometries."
+                    ndf = result
+                    st.markdown(content)
+                    plot_vector(ndf)
+                case _:
+                    content = response
+                    st.markdown(content)
 
-    # show_on_map(response)
-    # st.success("Great, you have the results plotted on the map.")
+    st.session_state.msgs.append(
+        {"role": "assistant", "avatar": "🤖", "content": content}
+    )
