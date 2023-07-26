@@ -21,7 +21,7 @@ from tools.geopy.distance import GeopyDistanceTool
 from tools.osmnx.geometry import OSMnxGeometryTool
 from tools.osmnx.network import OSMnxNetworkTool
 from tools.stac.search import STACSearchTool
-from agents.l4m_agent import base_agent
+from agents.l4m_agent import base_agent, openai_function_agent
 
 # DEBUG
 langchain.debug = True
@@ -60,7 +60,7 @@ def get_agent(
         search_tool,
     ]
 
-    agent = base_agent(llm, tools, agent_type=agent_type)
+    agent = openai_function_agent(llm, tools, agent_type=agent_type)
     return agent
 
 
@@ -154,7 +154,7 @@ if prompt := st.chat_input("Ask me anything about the flat world..."):
 
     aim_callback = AimCallbackHandler(
         repo=".",
-        experiment_name="LLLLLM: Base Agent v0.1",
+        experiment_name="LLLLLM: OpenAI function agent v0.1",
     )
 
     agent = get_agent(openai_api_key)
