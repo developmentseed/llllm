@@ -21,6 +21,8 @@ class GeopyGeocodeTool(BaseTool):
     def _run(self, place: str) -> tuple:
         locator = Nominatim(user_agent="geocode")
         location = locator.geocode(place)
+        if location is None:
+            return ("geocode", "Not a recognised address in Nomatim.")
         return ("geocode", (location.latitude, location.longitude))
 
     def _arun(self, place: str):

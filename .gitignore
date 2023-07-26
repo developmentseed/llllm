@@ -161,3 +161,6 @@ cython_debug/
 
 # streamlit cache
 cache/
+
+# AIM experiment runs
+.aim/

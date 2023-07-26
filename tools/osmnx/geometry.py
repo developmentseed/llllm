@@ -7,10 +7,10 @@ from langchain.tools import BaseTool
 
 
 class PlaceWithTags(BaseModel):
-    "Name of a place and tags in OSM."
+    "Name of a place on the map and tags in OSM."
 
-    place: str = Field(..., description="name of a place")
-    tags: Dict[str, str] = Field(..., description="open street maps tags")
+    place: str = Field(..., description="name of a place on the map.")
+    tags: Dict[str, str] = Field(..., description="open street maps tags.")
 
 
 class OSMnxGeometryTool(BaseTool):
@@ -18,8 +18,8 @@ class OSMnxGeometryTool(BaseTool):
 
     name: str = "geometry"
     args_schema: Type[BaseModel] = PlaceWithTags
-    description: str = "Use this tool to get geometry of different features of a place like building footprints, parks, lakes, hospitals, schools etc. \
-    Pass the name of the place & relevant tags of OSM as args."
+    description: str = "Use this tool to get geometry of different features of the place like building footprints, parks, lakes, hospitals, schools etc. \
+    Pass the name of the place & tags of OSM as args."
     return_direct = True
 
     def _run(self, place: str, tags: Dict[str, str]) -> gpd.GeoDataFrame:

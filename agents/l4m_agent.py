@@ -18,7 +18,7 @@ def base_agent(
         llm=llm,
         tools=tools,
         agent=agent_type,
-        max_iterations=2,
+        max_iterations=5,
         early_stopping_method="generate",
         verbose=True,
         # memory=memory,
