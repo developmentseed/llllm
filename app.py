@@ -5,11 +5,13 @@ import folium
 import streamlit as st
 from streamlit_folium import folium_static
 
+import langchain
 from langchain.agents import AgentType
 from langchain.chat_models import ChatOpenAI
 from langchain.tools import Tool, DuckDuckGoSearchRun
 from langchain.callbacks import (
     StreamlitCallbackHandler,
+    AimCallbackHandler,
     get_openai_callback,
 )
 
@@ -20,6 +22,9 @@ from tools.osmnx.geometry import OSMnxGeometryTool
 from tools.osmnx.network import OSMnxNetworkTool
 from tools.stac.search import STACSearchTool
 from agents.l4m_agent import base_agent
+
+# DEBUG
+langchain.debug = True
 
 
 @st.cache_resource(ttl="1h")
@@ -60,8 +65,6 @@ def get_agent(
 
 
 def run_query(agent, query):
-    st_callback = StreamlitCallbackHandler(st.container())
-    response = agent.run(query, callbacks=[st_callback])
     return response
 
 
@@ -117,7 +120,9 @@ if "total_cost" not in st.session_state:
     st.session_state.total_cost = 0
 
 with st.sidebar:
-    openai_api_key = st.text_input("OpenAI API Key", type="password")
+    openai_api_key = os.getenv("OPENAI_API_KEY")
+    if not openai_api_key:
+        openai_api_key = st.text_input("OpenAI API Key", type="password")
 
     st.subheader("OpenAI Usage")
     total_tokens = st.empty()
@@ -147,9 +152,18 @@ if prompt := st.chat_input("Ask me anything about the flat world..."):
         st.info("Please add your OpenAI API key to continue.")
         st.stop()
 
+    aim_callback = AimCallbackHandler(
+        repo=".",
+        experiment_name="LLLLLM: Base Agent v0.1",
+    )
+
     agent = get_agent(openai_api_key)
+
     with get_openai_callback() as cb:
-        response = run_query(agent, prompt)
+        st_callback = StreamlitCallbackHandler(st.container())
+        response = agent.run(prompt, callbacks=[st_callback, aim_callback])
+
+        aim_callback.flush_tracker(langchain_asset=agent, reset=False, finish=True)
 
         # Log OpenAI stats
         # print(f"Model name: {response.llm_output.get('model_name', '')}")

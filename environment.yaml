@@ -18,3 +18,4 @@ dependencies:
     - streamlit==1.24.1
     - streamlit-folium==0.12.0
     - watchdog==3.0.0
+    - aim==3.17.5
