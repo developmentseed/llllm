@@ -1,0 +1,8 @@
+streamlit:
+  image:
+    repository: ghcr.io/developmentseed/llllm
+    tag: latest
+  host: llllm.k8s.labs.ds.io
+
+secrets:
+  openai_api_key:
