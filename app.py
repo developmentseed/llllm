@@ -69,25 +69,28 @@ def plot_raster(items):
     st.subheader("Preview of the first item sorted by cloud cover")
     selected_item = min(items, key=lambda item: item.properties["eo:cloud_cover"])
     href = selected_item.assets["rendered_preview"].href
-    # arr = rio.open(href).read()
+    arr = rio.open(href).read()
 
-    # m = folium.Map(location=[28.6, 77.7], zoom_start=6)
+    lon_min, lat_min, lon_max, lat_max = selected_item.bbox
+    bbox = [[lat_min, lon_min], [lat_max, lon_max]]
+    m = folium.Map(
+        location=[(lat_min + lat_max) / 2, (lon_min + lon_max) / 2], zoom_start=8
+    )
+    img = folium.raster_layers.ImageOverlay(
+        name="Sentinel 2",
+        image=arr.transpose(1, 2, 0),
+        bounds=bbox,
+        opacity=0.9,
+        interactive=True,
+        cross_origin=False,
+        zindex=1,
+    )
 
-    # img = folium.raster_layers.ImageOverlay(
-    #     name="Sentinel 2",
-    #     image=arr.transpose(1, 2, 0),
-    #     bounds=selected_item.bbox,
-    #     opacity=0.9,
-    #     interactive=True,
-    #     cross_origin=False,
-    #     zindex=1,
-    # )
+    img.add_to(m)
+    folium.LayerControl().add_to(m)
 
-    # img.add_to(m)
-    # folium.LayerControl().add_to(m)
-
-    # folium_static(m)
-    st.image(href)
+    folium_static(m)
+    # st.image(href)
 
 
 def plot_vector(df):
