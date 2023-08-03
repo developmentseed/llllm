@@ -17,20 +17,20 @@ from langchain.callbacks import (
 
 from tools.mercantile_tool import MercantileTool
 from tools.geopy.geocode import GeopyGeocodeTool
-from tools.geopy.distance import GeopyDistanceTool
+
+# from tools.geopy.distance import GeopyDistanceTool
 from tools.osmnx.geometry import OSMnxGeometryTool
 from tools.osmnx.network import OSMnxNetworkTool
 from tools.stac.search import STACSearchTool
 from agents.l4m_agent import base_agent, openai_function_agent
 
-# DEBUG
+# # DEBUG
 langchain.debug = True
+# langchain.verbose = True
 
 
 @st.cache_resource(ttl="1h")
-def get_agent(
-    openai_api_key, agent_type=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION
-):
+def get_agent(openai_api_key):
     llm = ChatOpenAI(
         temperature=0,
         openai_api_key=openai_api_key,
@@ -44,7 +44,7 @@ def get_agent(
         func=DuckDuckGoSearchRun().run,
     )
     geocode_tool = GeopyGeocodeTool()
-    distance_tool = GeopyDistanceTool()
+    # distance_tool = GeopyDistanceTool()
     mercantile_tool = MercantileTool()
     geometry_tool = OSMnxGeometryTool()
     network_tool = OSMnxNetworkTool()
@@ -53,19 +53,16 @@ def get_agent(
     tools = [
         duckduckgo_tool,
         geocode_tool,
-        distance_tool,
+        # distance_tool,
         mercantile_tool,
         geometry_tool,
         network_tool,
         search_tool,
     ]
 
-    agent = openai_function_agent(llm, tools, agent_type=agent_type)
+    agent = openai_function_agent(llm, tools)
+    # agent = base_agent(llm, tools)
     return agent
-
-
-def run_query(agent, query):
-    return response
 
 
 def plot_raster(items):
@@ -102,7 +99,11 @@ def plot_vector(df):
 
 
 st.set_page_config(page_title="LLLLM", page_icon="🤖", layout="wide")
-st.subheader("🤖 I am Geo LLM Agent!")
+st.markdown("🤖 I am Geo LLM Agent!")
+st.caption(
+    "I have access to tools like :blue[STAC Search, OSM API, Geocode & Mercantile]. Feel free to ask me questions like - :orange[_lat,lng_ of a place, _parks/hospitals_ in a city, _walkable streets_ in a city or _satellite image_ on a particular date.]"
+)
+
 
 if "msgs" not in st.session_state:
     st.session_state.msgs = []
@@ -123,8 +124,11 @@ with st.sidebar:
     openai_api_key = os.getenv("OPENAI_API_KEY")
     if not openai_api_key:
         openai_api_key = st.text_input("OpenAI API Key", type="password")
+        st.info(
+            "You can find your API key [here](https://platform.openai.com/account/api-keys)"
+        )
 
-    st.subheader("OpenAI Usage")
+    st.subheader("OpenAI Usage this Session")
     total_tokens = st.empty()
     prompt_tokens = st.empty()
     completion_tokens = st.empty()
@@ -154,14 +158,17 @@ if prompt := st.chat_input("Ask me anything about the flat world..."):
 
     aim_callback = AimCallbackHandler(
         repo=".",
-        experiment_name="LLLLLM: OpenAI function agent v0.1",
+        experiment_name="LLLLLM: OpenAI function agent v0.3",
     )
 
     agent = get_agent(openai_api_key)
 
     with get_openai_callback() as cb:
         st_callback = StreamlitCallbackHandler(st.container())
-        response = agent.run(prompt, callbacks=[st_callback, aim_callback])
+        response = agent.run(
+            prompt,
+            callbacks=[st_callback, aim_callback],
+        )
 
         aim_callback.flush_tracker(langchain_asset=agent, reset=False, finish=True)
 
@@ -180,6 +187,8 @@ if prompt := st.chat_input("Ask me anything about the flat world..."):
         total_cost.write(f"Total Cost (USD): ${st.session_state.total_cost:,.4f}")
 
     with st.chat_message(name="assistant", avatar="🤖"):
+        print(type(response))
+        print(response)
         if type(response) == str:
             content = response
             st.markdown(response)
@@ -188,20 +197,28 @@ if prompt := st.chat_input("Ask me anything about the flat world..."):
 
             match tool:
                 case "stac-search":
-                    content = f"Found {len(result)} items from the catalog."
-                    st.markdown(content)
-                    if len(result) > 0:
+                    if len(result) == 0:
+                        content = "No items found."
+                    else:
+                        content = f"Found {len(result)} items from the catalog."
                         plot_raster(result)
+                    st.markdown(content)
                 case "geometry":
-                    content = f"Found {len(result)} geometries."
-                    gdf = result
+                    if type(result) is str or len(result) == 0:
+                        content = "No geometries found."
+                    else:
+                        content = f"Found {len(result)} geometries."
+                        gdf = result
+                        plot_vector(gdf)
                     st.markdown(content)
-                    plot_vector(gdf)
                 case "network":
-                    content = f"Found {len(result)} network geometries."
-                    ndf = result
+                    if type(result) is str or len(result) == 0:
+                        content = "No network geometries found."
+                    else:
+                        content = f"Found {len(result)} network geometries."
+                        ndf = result
+                        plot_vector(ndf)
                     st.markdown(content)
-                    plot_vector(ndf)
                 case _:
                     content = response
                     st.markdown(content)

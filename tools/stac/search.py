@@ -12,7 +12,7 @@ class PlaceWithDatetimeAndBBox(BaseModel):
     "Name of a place and date."
 
     bbox: str = Field(..., description="bbox of the place")
-    datetime: str = Field(..., description="datetime for the stac catalog search")
+    datetime: str = Field(..., description="only date for the stac catalog search")
 
 
 class STACSearchTool(BaseTool):
