@@ -12,8 +12,8 @@ def base_agent(
     llm: LLM object
     tools: List of tools to use by the agent
     """
-    # chat_history = MessagesPlaceholder(variable_name="chat_history")
-    # memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+    chat_history = MessagesPlaceholder(variable_name="chat_history")
+    memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
     agent = initialize_agent(
         llm=llm,
         tools=tools,
@@ -21,11 +21,37 @@ def base_agent(
         max_iterations=5,
         early_stopping_method="generate",
         verbose=True,
-        # memory=memory,
-        # agent_kwargs={
-        #     "memory_prompts": [chat_history],
-        #     "input_variables": ["input", "agent_scratchpad", "chat_history"],
-        # },
+        memory=memory,
+        agent_kwargs={
+            "memory_prompts": [chat_history],
+            "input_variables": ["input", "agent_scratchpad", "chat_history"],
+        },
     )
     print("agent initialized")
+    return agent
+
+
+def openai_function_agent(llm, tools, agent_type=AgentType.OPENAI_FUNCTIONS):
+    """OpenAI function agent that is fine-tuned to call functions with valid arguments.
+
+    llm: LLM object
+    tools: List of tools to use by the agent
+    """
+    agent_kwargs = {
+        "extra_prompt_messages": [MessagesPlaceholder(variable_name="memory")],
+    }
+    memory = ConversationBufferMemory(memory_key="memory", return_messages=True)
+
+    agent = initialize_agent(
+        tools=tools,
+        llm=llm,
+        agent=agent_type,
+        max_iterations=5,
+        early_stopping_method="generate",
+        verbose=True,
+        # TODO: Fix this, cannot handle dataframes or geojsons as memory
+        # agent_kwargs=agent_kwargs,
+        # memory=memory,
+    )
+    print("OpenAI function agent initialized")
     return agent

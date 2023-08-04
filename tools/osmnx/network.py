@@ -25,10 +25,14 @@ class OSMnxNetworkTool(BaseTool):
     return_direct = True
 
     def _run(self, place: str, network_type: str) -> gpd.GeoDataFrame:
-        G = ox.graph_from_place(place, network_type=network_type, simplify=True)
-        network = utils_graph.graph_to_gdfs(G, nodes=False)
-        network = network[["name", "geometry"]].reset_index(drop=True)
-        return ("network", network)
+        try:
+            G = ox.graph_from_place(place, network_type=network_type, simplify=True)
+            network = utils_graph.graph_to_gdfs(G, nodes=False)
+            network = network[["name", "geometry"]].reset_index(drop=True)
+            response = ("network", network)
+        except Exception as e:
+            response = ("network", f"Error in parsing: {(place, network_type)}")
+        return response
 
     def _arun(self, place: str):
         raise NotImplementedError
