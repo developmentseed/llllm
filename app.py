@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 
 import rasterio as rio
 import folium
@@ -27,6 +28,9 @@ from agents.l4m_agent import base_agent, openai_function_agent
 # # DEBUG
 langchain.debug = True
 # langchain.verbose = True
+
+# Load environment variables
+load_dotenv()
 
 
 @st.cache_resource(ttl="1h")
@@ -160,7 +164,7 @@ if prompt := st.chat_input("Ask me anything about the flat world..."):
         st.stop()
 
     aim_callback = AimCallbackHandler(
-        repo=".",
+        repo=os.getenv("AIM_LOGS", "."),
         experiment_name="LLLLLM: OpenAI function agent v0.3",
     )
 
