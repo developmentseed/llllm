@@ -32,7 +32,7 @@ def stac_search(
     latitude and longitude and between a start and an end date.
     """
 
-    catalog = pystac_client.Client.open(STAC_API)
+    catalog = Client.open(STAC_API)
 
     search = catalog.search(
         collections=[COLLECTION],
