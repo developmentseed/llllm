@@ -3,8 +3,8 @@ from typing import Dict, Type
 import geopandas as gpd
 import osmnx as ox
 from geopandas import GeoDataFrame
-from langchain.pydantic_v1 import BaseModel, Field
 from langchain_core.tools import tool
+from pydantic import BaseModel, Field
 
 
 class PlaceWithTags(BaseModel):

@@ -1,8 +1,8 @@
 from typing import Tuple
 
 from geopy.geocoders import Nominatim
-from langchain.pydantic_v1 import BaseModel, Field
 from langchain_core.tools import tool
+from pydantic import BaseModel, Field
 
 
 class GeopyGeocodeInput(BaseModel):
@@ -21,5 +21,5 @@ def geocode_tool(place: str) -> Tuple[float, float]:
     locator = Nominatim(user_agent="geocode")
     location = locator.geocode(place)
     if location is None:
-        return ("geocode", "Not a recognised address in Nomatim.")
+        return 0, 0  # Null island
     return location.latitude, location.longitude
