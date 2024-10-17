@@ -1,3 +1,5 @@
+from typing import Union
+
 from geopy.distance import distance
 from langchain_core.tools import tool
 from pydantic import BaseModel, Field
@@ -6,13 +8,15 @@ from pydantic import BaseModel, Field
 class GeopyDistanceInput(BaseModel):
     """Input for GeopyDistanceTool."""
 
-    point_1: tuple[float, float] = Field(description="lat,lng of a place")
-    point_2: tuple[float, float] = Field(description="lat,lng of a place")
+    lat1: float = Field(description="Latitude of a first location")
+    lon1: float = Field(description="Longitude of a first location")
+    lat2: float = Field(description="Latitude of a second location")
+    lon2: float = Field(description="Longitude of a second location")
 
 
 @tool("distance-tool", args_schema=GeopyDistanceInput, return_direct=False)
-def distance_tool(point_1: tuple[float, float], point_2: tuple[float, float]) -> float:
+def distance_tool(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """
-    Custom tool to calculate geodesic distance between two points.
+    Tool to calculate distance in kilometers between two points.
     """
-    return distance(point_1, point_2).km
+    return distance((lat1, lon1), (lat2, lon2)).km
