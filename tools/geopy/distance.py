@@ -1,26 +1,22 @@
-from typing import Type
+from typing import Union
 
 from geopy.distance import distance
+from langchain_core.tools import tool
 from pydantic import BaseModel, Field
-from langchain.tools import BaseTool
 
 
 class GeopyDistanceInput(BaseModel):
     """Input for GeopyDistanceTool."""
 
-    point_1: tuple[float, float] = Field(..., description="lat,lng of a place")
-    point_2: tuple[float, float] = Field(..., description="lat,lng of a place")
+    lat1: float = Field(description="Latitude of a first location")
+    lon1: float = Field(description="Longitude of a first location")
+    lat2: float = Field(description="Latitude of a second location")
+    lon2: float = Field(description="Longitude of a second location")
 
 
-class GeopyDistanceTool(BaseTool):
-    """Custom tool to calculate geodesic distance between two points."""
-
-    name: str = "distance"
-    args_schema: Type[BaseModel] = GeopyDistanceInput
-    description: str = "Use this tool to compute distance between two points available in lat,lng format."
-
-    def _run(self, point_1: tuple[int, int], point_2: tuple[int, int]) -> float:
-        return ("distance", distance(point_1, point_2).km)
-
-    def _arun(self, place: str):
-        raise NotImplementedError
+@tool("distance-tool", args_schema=GeopyDistanceInput, return_direct=False)
+def distance_tool(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """
+    Tool to calculate distance in kilometers between two points.
+    """
+    return distance((lat1, lon1), (lat2, lon2)).km

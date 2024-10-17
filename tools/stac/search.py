@@ -1,41 +1,46 @@
-from typing import Type
+from datetime import datetime
+from typing import List, Type
 
-from pystac_client import Client
 import planetary_computer as pc
+from langchain_core.tools import tool
 from pydantic import BaseModel, Field
-from langchain.tools import BaseTool
+from pystac import Item
+from pystac_client import Client
 
 PC_STAC_API = "https://planetarycomputer.microsoft.com/api/stac/v1"
 
 
-class PlaceWithDatetimeAndBBox(BaseModel):
-    "Name of a place and date."
-
-    bbox: str = Field(..., description="bbox of the place")
-    datetime: str = Field(..., description="datetime for the stac catalog search")
+STAC_API = "https://earth-search.aws.element84.com/v1"
+COLLECTION = "sentinel-2-l2a"
 
 
-class STACSearchTool(BaseTool):
-    """Tool to search for STAC items in a catalog."""
+class StacSearchInput(BaseModel):
+    latitude: float = Field(description="Latitude of a location")
+    longitude: float = Field(description="Longitude of a location")
+    start: datetime = Field(description="Start date")
+    end: datetime = Field(description="End date")
 
-    name: str = "stac-search"
-    args_schema: Type[BaseModel] = PlaceWithDatetimeAndBBox
-    description: str = "Use this tool to search for STAC items in a catalog. \
-    Pass the bbox of the place & date as args."
-    return_direct = True
 
-    def _run(self, bbox: str, datetime: str):
-        catalog = Client.open(PC_STAC_API, modifier=pc.sign_inplace)
+@tool("stac-search-tool", args_schema=StacSearchInput, return_direct=True)
+def stac_search(
+    latitude: float, longitude: float, start: datetime, end: datetime
+) -> List[Item]:
+    """
+    Search Sentinel-2 STAC items.
 
-        search = catalog.search(
-            collections=["sentinel-2-l2a"],
-            bbox=bbox,
-            datetime=datetime,
-            max_items=10,
-        )
-        items = search.get_all_items()
+    Use this tool to perform a STAC scene search for a Sentinel-2 images at a
+    latitude and longitude and between a start and an end date.
+    """
 
-        return ("stac-search", items)
+    catalog = Client.open(STAC_API)
 
-    def _arun(self, bbox: str, datetime: str):
-        raise NotImplementedError
+    search = catalog.search(
+        collections=[COLLECTION],
+        datetime=f"{start.date()}/{end.date()}",
+        bbox=(longitude - 1e-5, latitude - 1e-5, longitude + 1e-5, latitude + 1e-5),
+        max_items=100,
+    )
+
+    items = search.get_all_items()
+
+    return [item for item in items]

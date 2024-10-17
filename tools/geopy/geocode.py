@@ -1,29 +1,24 @@
-from typing import Type
+from typing import Tuple
 
 from geopy.geocoders import Nominatim
+from langchain_core.tools import tool
 from pydantic import BaseModel, Field
-from langchain.tools import BaseTool
 
 
 class GeopyGeocodeInput(BaseModel):
     """Input for GeopyGeocodeTool."""
 
-    place: str = Field(..., description="name of a place")
+    place: str = Field(description="name of a place")
 
 
-class GeopyGeocodeTool(BaseTool):
-    """Custom tool to perform geocoding."""
+@tool("geocode-tool", args_schema=GeopyGeocodeInput, return_direct=True)
+def geocode_tool(place: str) -> Tuple[float, float]:
+    """
+    Custom tool to perform geocoding.
 
-    name: str = "geocode"
-    args_schema: Type[BaseModel] = GeopyGeocodeInput
-    description: str = "Use this tool for geocoding."
-
-    def _run(self, place: str) -> tuple:
-        locator = Nominatim(user_agent="geocode")
-        location = locator.geocode(place)
-        if location is None:
-            return ("geocode", "Not a recognised address in Nomatim.")
-        return ("geocode", (location.latitude, location.longitude))
-
-    def _arun(self, place: str):
-        raise NotImplementedError
+    Use this tool for geocoding an address of a place.
+    """
+    return 30.1, 40.1
+    locator = Nominatim(user_agent="geocode")
+    location = locator.geocode(place)
+    return location.latitude, location.longitude

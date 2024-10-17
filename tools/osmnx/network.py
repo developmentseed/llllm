@@ -1,34 +1,26 @@
-from typing import Type, Dict
-
-import osmnx as ox
-from osmnx import utils_graph
 import geopandas as gpd
+import osmnx as ox
+from geopandas import GeoDataFrame
+from langchain_core.tools import tool
+from osmnx import utils_graph
 from pydantic import BaseModel, Field
-from langchain.tools import BaseTool
 
 
 class PlaceWithNetworktype(BaseModel):
     "Name of a place on the map"
-    place: str = Field(..., description="name of a place on the map")
+    place: str = Field(description="name of a place on the map")
     network_type: str = Field(
-        ..., description="network type: one of walk, bike, drive or all"
+        description="network type: one of walk, bike, drive or all"
     )
 
 
-class OSMnxNetworkTool(BaseTool):
-    """Custom tool to query road networks from OSM."""
-
-    name: str = "network"
-    args_schema: Type[BaseModel] = PlaceWithNetworktype
-    description: str = "Use this tool to get road network of a place. \
-    Pass the name of the place & type of road network i.e walk, bike, drive or all."
-    return_direct = True
-
-    def _run(self, place: str, network_type: str) -> gpd.GeoDataFrame:
-        G = ox.graph_from_place(place, network_type=network_type, simplify=True)
-        network = utils_graph.graph_to_gdfs(G, nodes=False)
-        network = network[["name", "geometry"]].reset_index(drop=True)
-        return ("network", network)
-
-    def _arun(self, place: str):
-        raise NotImplementedError
+@tool("network-tool", args_schema=PlaceWithNetworktype, return_direct=True)
+def network_tool(place: str, network_type: str) -> GeoDataFrame:
+    """
+    Custom tool to query road networks from OSM.
+    Use this tool to get road network of a place.
+    Pass the name of the place & type of road network i.e walk, bike, drive or all
+    """
+    G = ox.graph_from_place(place, network_type=network_type, simplify=True)
+    network = utils_graph.graph_to_gdfs(G, nodes=False)
+    return network[["name", "geometry"]].reset_index(drop=True)
