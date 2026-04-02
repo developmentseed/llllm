@@ -12,20 +12,20 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # v2
 
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
+      uses: docker/setup-buildx-action@f211e3e9ded2d9377c8cadc4489a4e38014bc4c9 # v1
 
     - name: Login to GitHub Container Registry
-      uses: docker/login-action@v2
+      uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc # v2
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Build and push Docker image
-      uses: docker/build-push-action@v4
+      uses: docker/build-push-action@0a97817b6ade9f46837855d676c4cca3a2471fc9 # v4
       with:
         context: .
         push: true
@@ -36,11 +36,11 @@ jobs:
         cache-to: type=gha,mode=max
   
     - id: 'auth'
-      uses: 'google-github-actions/auth@v1'
+      uses: 'google-github-actions/auth@3a3c4c57d294ef65efaaee4ff17b22fa88dd3c69' # v1
       with:
         credentials_json: '${{ secrets.GOOGLE_CREDENTIALS }}'
     - name: 'Set up Cloud SDK'
-      uses: 'google-github-actions/setup-gcloud@v1'
+      uses: 'google-github-actions/setup-gcloud@e30db14379863a8c79331b04a9969f4c1e225e0b' # v1
     - name: Configure kubectl
       run: |
         gcloud components install gke-gcloud-auth-plugin
@@ -48,7 +48,7 @@ jobs:
         gcloud config set compute/zone us-central1-f
         gcloud container clusters get-credentials ${{ secrets.CLUSTER_NAME }}
     - name: 'Set up Helm'
-      uses: 'Azure/setup-helm@v1'
+      uses: 'Azure/setup-helm@18bc76811624f360dbd7f18c2d4ecb32c7b87bab' # v1
       with:
         version: 'v3.12.0'
     - name: "Deploy Helm Chart"
